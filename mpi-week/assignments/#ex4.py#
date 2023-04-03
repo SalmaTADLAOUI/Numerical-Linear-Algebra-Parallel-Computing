@@ -1,0 +1,58 @@
+from mpi4py import MPI
+import numpy as np
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+n=8
+m=8
+
+if rank==0:
+    A = np.random.randint(0,10, size=(n,m))
+else:
+    A = None
+# Scatter the data of A to all the processors
+counts = [n*m//size]*size
+counts[-1] = n*m - sum(counts[:-1])
+displs = [sum(counts[:i]) for i in range(size)]
+sub_A = np.zeros(counts[rank])
+comm.Scatterv([A, counts, displs, MPI.DOUBLE], sub_A, root=0)
+
+if rank == 1:
+        sub_A = sub_A.reshape(n//2, m//2)[:n//2, m//2:]
+elif rank == 2:
+        sub_A = sub_A.reshape(n//2, m//2)[n//2:, :m//2]
+elif rank == 3:
+        sub_A = sub_A.reshape(n//2, m//2)[n//2:, m//2:]
+
+print(f"Rank {rank} submatrix:\n{sub_A}")
+    
+from mpi4py import MPI
+import numpy as np
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+n = 8
+m = 8
+
+if rank == 0:
+        A = np.random.randint(0, 10, size=(n, m))
+else:
+        A = None
+
+        counts = [n*m // size] * size
+        counts[-1] = n*m - sum(counts[:-1])
+        displs = [sum(counts[:i]) for i in range(size)]
+        sub_A = np.zeros(counts[rank])
+
+        comm.Scatterv([A, counts, displs, MPI.DOUBLE], sub_A, root=0)
+
+        if rank == 1:
+                sub_A = sub_A.reshape(n//2, m//2)[:, m//2:]
+        elif rank == 2:
+                sub_A = sub_A.reshape(n//2, m//2)[:n//2, :m//2]
+        elif rank == 3:
+                sub_A = sub_A.reshape(n//2, m//2)[n//2:, m//2:]
+
+                print(f"Rank {rank} submatrix:\n{sub_A}")
+                
